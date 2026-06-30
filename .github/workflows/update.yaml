@@ -28,8 +28,6 @@ jobs:
         with:
           args: --commit-only --never-fork com.apifox.Apifox.yaml
 
-
-
       - run: curl -o apifox.zip https://file-assets.apifox.com/download/Apifox-linux-deb-latest.zip
       - run: unzip apifox.zip
       - run: ar -x *.deb
@@ -39,6 +37,14 @@ jobs:
       - name: update metainfo
         run: |
           set -x
+
+          pwd
+
+          ls -l
+
+          echo GITHUB_WORKSPACE=$GITHUB_WORKSPACE
+          cd $GITHUB_WORKSPACE
+
           APIFOX_LAST_VERSION=`head -n 1 usr/share/doc/apifox/changelog | tr -d '()' | cut -d ' ' -f 2`
 
           grep -q "$APIFOX_LAST_VERSION" com.apifox.Apifox.metainfo.xml
