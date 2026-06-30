@@ -30,6 +30,29 @@ jobs:
 
       - name: update metainfo
         run: |
-          ls /github/workspace
+          curl -o apifox.zip https://file-assets.apifox.com/download/Apifox-linux-deb-latest.zip
 
+          unzip apifox.zip
+          ar -x *.deb
+          tar -xJf data.tar.xz
+          gunzip -d usr/share/doc/apifox/changelog.gz
 
+          APIFOX_LAST_VERSION=`head -n 1 usr/share/doc/apifox/changelog | tr -d '()' | cut -d ' ' -f 2`
+
+          grep -q "$APIFOX_LAST_VERSION" com.apifox.Apifox.metainfo.xml
+          [ $? -eq 0 ] && exit 0
+
+          curl -o changelog https://docs.apifox.com/changelog
+          RELEASE_DATE=$(grep -F $APIFOX_LAST_VERSION -C 2 changelog | tail -n 1 | tr -d '`')
+
+          cat > release.txt  << EOF
+            <release version="$APIFOX_LAST_VERSION" date="$RELEASE_DATE">
+              <url>https://docs.apifox.com/changelog</url>
+            </release>
+          EOF
+
+          sed '/<releases>/rrelease.txt' com.apifox.Apifox.metainfo.xml
+
+          git add com.apifox.Apifox.metainfo.xml
+          git commit -m 'Update the version in the metadata'
+          git push
